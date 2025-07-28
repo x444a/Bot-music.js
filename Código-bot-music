@@ -1,0 +1,67 @@
+import { Client, GatewayIntentBits } from 'discord.js';
+import { DisTube } from 'distube';
+import { YtDlpPlugin } from '@distube/yt-dlp';
+
+const client = new Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildVoiceStates,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent
+  ]
+});
+
+const distube = new DisTube(client, {
+  emitNewSongOnly: true,
+  leaveOnEmpty: true,
+  plugins: [new YtDlpPlugin()]
+});
+
+client.once('ready', () => {
+  console.log(`✅ Bot Music Activo como ${client.user.tag}`);
+});
+
+client.on('messageCreate', async (message) => {
+  if (!message.guild || message.author.bot) return;
+
+  const prefix = '!Z';
+  if (!message.content.startsWith(prefix)) return;
+
+  const args = message.content.slice(prefix.length).trim().split(/ +/);
+  const cmd = args.shift().toLowerCase();
+
+  if (cmd === 'play') {
+    const voiceChannel = message.member.voice?.channel;
+
+    if (!voiceChannel) return message.channel.send('❌ Debes estar en un canal de voz.');
+    if (!args.length) return message.channel.send('❌ Debes escribir el nombre o enlace de la canción.');
+
+    try {
+      console.log(`🎵 Reproduciendo: ${args.join(" ")}`);
+      await distube.play(voiceChannel, args.join(" "), {
+        textChannel: message.channel,
+        member: message.member
+      });
+
+      distube.setVolume(message, 100);
+    } catch (e) {
+      console.error(e);
+      message.channel.send('❌ Ocurrió un error al intentar reproducir la canción.');
+    }
+
+  } else if (cmd === 'skip') {
+    distube.skip(message);
+  } else if (cmd === 'stop') {
+    distube.stop(message);
+    message.channel.send('⛔ Música detenida.');
+  } else if (cmd === 'cmds') {
+    const queue = distube.getQueue(message);
+    if (!queue) return message.channel.send('🙅‍♂️ No hay canciones en la cola.');
+
+    message.channel.send(`🎶 Cola:\n${queue.songs.map((s, i) => `${i + 1}. ${s.name}`).join('\n')}`);
+  }
+});
+
+// ⚠️ ¡NO compartas tu token públicamente!
+// Usa un archivo .env en producción y cargalo con dotenv.
+client.login('MTM5ODc3ODEyNzYyMjM0MDc2OQ.GSM_F_.nKli3Rdv49IyHKeT1P9SYKGX0_tbWU1A_u5LRg');
