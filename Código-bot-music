@@ -62,6 +62,6 @@ client.on('messageCreate', async (message) => {
   }
 });
 
-// ⚠️ ¡NO compartas tu token públicamente!
+// NO compartas tu token públicamente
 // Usa un archivo .env en producción y cargalo con dotenv.
-client.login('MTM5ODc3ODEyNzYyMjM0MDc2OQ.GSM_F_.nKli3Rdv49IyHKeT1P9SYKGX0_tbWU1A_u5LRg');
+client.login('bot_tocken');
